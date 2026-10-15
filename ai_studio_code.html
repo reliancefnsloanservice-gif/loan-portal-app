@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loan Portal - Apply Online</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+  <!-- Header -->
+  <header class="bg-blue-900 text-white p-4 text-center font-bold text-xl shadow">
+    🏦 All-in-One Loan Application Portal
+  </header>
+
+  <div class="max-w-xl mx-auto my-8 p-6 bg-white rounded-xl shadow-lg border">
+    <h2 class="text-xl font-bold mb-4 text-center text-blue-900">लोन के लिए ऑनलाइन आवेदन करें</h2>
+    
+    <form id="loanForm" class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold">पूरा नाम *</label>
+        <input type="text" id="fullName" required class="w-full border p-2 rounded outline-none focus:ring-1 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold">मोबाइल नंबर *</label>
+        <input type="tel" id="mobile" pattern="[0-9]{10}" required placeholder="10 अंक" class="w-full border p-2 rounded outline-none focus:ring-1 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold">लोन का प्रकार *</label>
+        <select id="loanType" class="w-full border p-2 rounded outline-none">
+          <option>Personal Loan</option>
+          <option>Business Loan</option>
+          <option>Home Loan</option>
+          <option>Car/Bike Loan</option>
+          <option>Gold Loan</option>
+          <option>Property Loan</option>
+          <option>Education Loan</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold">आवश्यक राशि (₹) *</label>
+        <input type="number" id="formAmount" required placeholder="जैसे: 200000" class="w-full border p-2 rounded outline-none">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold">मासिक आय (₹) *</label>
+        <input type="number" id="formIncome" required placeholder="जैसे: 35000" class="w-full border p-2 rounded outline-none">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold">शहर</label>
+        <input type="text" id="city" placeholder="जैसे: Delhi" class="w-full border p-2 rounded outline-none">
+      </div>
+      <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded shadow transition">
+        आवेदन सबमिट करें
+      </button>
+    </form>
+    
+    <div id="msg" class="hidden mt-4 p-3 rounded bg-emerald-100 text-emerald-800 font-bold text-center"></div>
+  </div>
+
+  <!-- Status Tracker -->
+  <div class="max-w-xl mx-auto mb-12 p-6 bg-white rounded-xl shadow border">
+    <h3 class="font-bold mb-2">आवेदन स्थिति जांचें (Track Application)</h3>
+    <div class="flex gap-2">
+      <input type="text" id="trackId" placeholder="Application ID दर्ज करें" class="border p-2 flex-1 rounded uppercase outline-none font-mono">
+      <button onclick="track()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 rounded font-bold">जांचें</button>
+    </div>
+    <div id="trackResult" class="hidden mt-3 p-3 bg-blue-50 rounded text-sm"></div>
+  </div>
+
+  <footer class="text-center text-xs text-slate-500 pb-8">
+    <p>© 2026 Financial Lead Assistance Portal. All rights reserved.</p>
+    <a href="/admin.html" class="underline text-blue-600 mt-1 inline-block">एडमिन लॉगिन डैशबोर्ड</a>
+  </footer>
+
+  <script>
+    document.getElementById('loanForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const payload = {
+        fullName: document.getElementById('fullName').value,
+        mobile: document.getElementById('mobile').value,
+        loanType: document.getElementById('loanType').value,
+        loanAmount: document.getElementById('formAmount').value,
+        income: document.getElementById('formIncome').value,
+        city: document.getElementById('city').value
+      };
+      const res = await fetch('/api/apply', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      const msg = document.getElementById('msg');
+      msg.classList.remove('hidden');
+      if (data.success) {
+        msg.innerHTML = `🎉 सफलतापूर्वक जमा हुआ!<br>आपकी <b>Application ID: <span class="text-blue-900">${data.appId}</span></b> है।`;
+        document.getElementById('loanForm').reset();
+      }
+    };
+
+    async function track() {
+      const id = document.getElementById('trackId').value.trim();
+      if (!id) return;
+      const res = await fetch('/api/track/' + id);
+      const data = await res.json();
+      const div = document.getElementById('trackResult');
+      div.classList.remove('hidden');
+      if (data.success) {
+        div.innerHTML = `<strong>आवेदक:</strong> ${data.data.fullName}<br><strong>स्थिति:</strong> <span class="bg-blue-600 text-white px-2 py-0.5 rounded text-xs">${data.data.status}</span><br><strong>टिप्पणी:</strong> ${data.data.remarks}`;
+      } else {
+        div.innerHTML = `<span class="text-red-500">कोई रिकॉर्ड नहीं मिला!</span>`;
+      }
+    }
+  </script>
+</body>
+</html>
